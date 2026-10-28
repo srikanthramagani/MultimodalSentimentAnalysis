@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multimodal Sentiment Analysis</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <svg class="logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="24" cy="24" r="22" fill="#1e293b" stroke="#6366f1" stroke-width="2"/>
+          <circle cx="17" cy="20" r="3" fill="#6366f1"/>
+          <circle cx="31" cy="20" r="3" fill="#6366f1"/>
+          <path d="M15 30 Q24 38 33 30" stroke="#6366f1" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Multimodal Sentiment Analysis</h1>
+        <p class="subtitle">Understand tone from text, images, and voice clips together using Whisper speech recognition, BLIP captioning, and RoBERTa sentiment classification.</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <form id="analyzeForm" novalidate>
+      <div class="input-panels">
+        <div class="panel" id="textPanel">
+          <label class="panel-label" for="textInput">Text <span class="optional">(or use voice)</span></label>
+          <textarea
+            id="textInput"
+            name="text"
+            rows="7"
+            maxlength="500"
+            placeholder="Enter text to analyze, or record/upload a voice clip..."
+          ></textarea>
+          <div class="char-count"><span id="charCount">0</span> / 500</div>
+          <div class="field-error" id="textError" role="alert" aria-live="polite"></div>
+        </div>
+
+        <div class="panel" id="imagePanel">
+          <label class="panel-label">Image <span class="optional">(optional)</span></label>
+          <div
+            class="drop-zone"
+            id="dropZone"
+            tabindex="0"
+            role="button"
+            aria-label="Upload image"
+          >
+            <input type="file" id="imageInput" name="image" accept="image/jpeg,image/png" hidden />
+            <div class="drop-zone-content" id="dropContent">
+              <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+                <polyline points="16 12 12 8 8 12"/>
+                <line x1="12" y1="8" x2="12" y2="20"/>
+              </svg>
+              <span class="drop-label">Click to browse or drag and drop</span>
+              <span class="drop-hint">JPEG or PNG</span>
+            </div>
+            <div class="preview-wrap" id="previewWrap" hidden>
+              <img id="previewImg" src="" alt="Selected image preview" />
+              <button type="button" class="remove-btn" id="removeImage" aria-label="Remove image">&#x2715;</button>
+            </div>
+          </div>
+          <div class="field-error" id="imageError" role="alert" aria-live="polite"></div>
+        </div>
+
+        <div class="panel" id="voicePanel">
+          <label class="panel-label">Voice Clip <span class="optional">(optional)</span></label>
+          <div class="voice-box">
+            <div class="voice-actions" id="voiceActions">
+              <button type="button" class="mic-record-btn" id="recordBtn" aria-label="Record voice clip">
+                <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+                <span id="recordBtnText">Record</span>
+              </button>
+              <span class="voice-divider">or</span>
+              <label class="voice-file-btn" for="voiceInput" tabindex="0">
+                <svg class="upload-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span>Upload Audio</span>
+              </label>
+              <input type="file" id="voiceInput" name="voice" accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.webm" hidden />
+            </div>
+
+            <div class="recording-state" id="recordingState" hidden>
+              <span class="pulsing-dot"></span>
+              <span class="rec-status-text">Recording: <strong id="recordTimer">00:00</strong></span>
+              <button type="button" class="stop-rec-btn" id="stopRecBtn">Stop</button>
+            </div>
+
+            <div class="voice-preview-box" id="voicePreviewBox" hidden>
+              <audio id="audioPlayer" controls></audio>
+              <div class="voice-meta">
+                <span id="voiceStatusText" class="voice-status-text"></span>
+                <button type="button" class="remove-btn" id="removeVoice" aria-label="Remove voice clip">&#x2715;</button>
+              </div>
+            </div>
+            <div class="drop-hint audio-hint">WAV, MP3, OGG, FLAC, or WebM</div>
+          </div>
+          <div class="field-error" id="voiceError" role="alert" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="submit-row">
+        <button type="submit" class="analyze-btn" id="analyzeBtn">
+          <span class="btn-text">Analyze</span>
+          <span class="spinner" id="spinner" hidden aria-hidden="true"></span>
+        </button>
+      </div>
+    </form>
+
+    <section class="results-section" id="resultsSection" hidden aria-live="polite">
+      <div class="overall-badge" id="overallBadge">
+        <span class="sentiment-emoji" id="sentimentEmoji"></span>
+        <div class="overall-text">
+          <span class="overall-label" id="overallLabel"></span>
+          <span class="overall-conf" id="overallConf"></span>
+        </div>
+      </div>
+
+      <div class="result-cards">
+        <div class="result-card" id="textCard">
+          <h3>Text Analysis</h3>
+          <div class="no-text-note" id="noTextNote" hidden>No text provided.</div>
+          <div class="text-results" id="textResults">
+            <div class="card-label" id="textCardLabel"></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar" id="textConfBar"></div>
+            </div>
+            <div class="scores" id="textScores"></div>
+          </div>
+        </div>
+
+        <div class="result-card" id="imageCard">
+          <h3>Image Analysis</h3>
+          <div class="no-image-note" id="noImageNote">No image provided.</div>
+          <div class="image-results" id="imageResults" hidden>
+            <div class="card-label" id="imageCardLabel"></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar" id="imageConfBar"></div>
+            </div>
+            <div class="scores" id="imageScores"></div>
+            <div class="caption-note" id="captionNote"></div>
+          </div>
+        </div>
+
+        <div class="result-card" id="voiceCard">
+          <h3>Voice Analysis</h3>
+          <div class="no-voice-note" id="noVoiceNote">No voice clip provided.</div>
+          <div class="voice-results" id="voiceResults" hidden>
+            <div class="card-label" id="voiceCardLabel"></div>
+            <div class="conf-bar-wrap">
+              <div class="conf-bar" id="voiceConfBar"></div>
+            </div>
+            <div class="scores" id="voiceScores"></div>
+            <div class="transcription-note" id="transcriptionNote"></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="fusion-note" id="fusionNote"></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
