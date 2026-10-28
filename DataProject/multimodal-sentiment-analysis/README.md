@@ -120,10 +120,7 @@ Voice Input -> Whisper ASR (Tiny)  -> RoBERTa Sentiment ---------------|
 
 Weights: dynamically normalized across active modalities (configured in `app/models/fusion.py`).
 
-## License
-
-MIT License. See [LICENSE](LICENSE).
 
 ## Author
 
-[Sai Venkata Ganesh Bandaluppi](https://github.com/SaiVenkataGaneshBandaluppi)
+[SrikanthRamagani](https://github.com/Srikanthramagani)
